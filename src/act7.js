@@ -45,7 +45,16 @@ let episodeToMovieIDs = [
   { m: 6, e: 3 },
 ];
 
-function _setMovieHeading({ name, episodeID, release, director }) {}
+function _setMovieHeading(movieId, titleSelector, infoSelector, directorSelector) {
+  const title = document.querySelector(titleSelector);
+  const info = document.querySelector(infoSelector);
+  const director = document.querySelector(directorSelector);
+  console.log(directorSelector);
+  const peliculaInfo = swapi.getMovieInfo(movieId);
+  title.innerHTML = peliculaInfo.title;
+  info.innerHTML = "Episode " + peliculaInfo.episodeID;
+  director.innerHTML = peliculaInfo.director; 
+}
 
 function _populateHomeWorldSelector(homeworlds) {}
 
