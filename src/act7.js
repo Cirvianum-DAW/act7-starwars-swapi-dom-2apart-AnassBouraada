@@ -80,11 +80,12 @@ async function _createCharacterTokens(caracter) {
   const planetId = parts.pop(); // Extreu l'últim element (l'identificador de la planeta)
   img.src = "/../public/assets/people/" + planetId +".jpg";
   img.classList.add('character__image');
+  img.style.maxWidth = '100%'
   ficha.appendChild(img);
 
   // Crear i afegir el títol (nom del personatge)
   const h2 = document.createElement('h2');
-  h2.textContent = caracter.name;
+  h2.innerHTML = caracter.name;
   h2.classList.add('character__name');
   ficha.appendChild(h2);
 
@@ -154,7 +155,7 @@ async function _handleOnSelectMovieChanged(event) {
 
   const planetasNoDuplicats = new Set(planetas);
 
-  let result = [...planetasNoDuplicats].sort();
+  let result = [...planetasNoDuplicats].sort(); //Aqui el que fem es convertir el Set en un array i ordenar-lo alfabeticament amb sort() i els [...] que es un spread operator que 
 
   result.forEach(planeta => {
     const option = document.createElement('option');
