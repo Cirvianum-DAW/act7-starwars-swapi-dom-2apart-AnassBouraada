@@ -1,33 +1,179 @@
 import swapi from './swapi.js';
 
 //Exemple d'inicialització de la llista de pel·lícules. Falten dades!
-async function setMovieHeading(movieId, titleSelector) {
+async function setMovieHeading(movieId, titleSelector, infoSelector, directorSelector) {
   // Obtenim els elements del DOM amb QuerySelector
   const title = document.querySelector(titleSelector);
+  const info = document.querySelector(infoSelector)
+  const director = document.querySelector(directorSelector)
 
+  if (!movieId) {
+    title.innerHTML = ''
+    info.innerHTML = ''
+    director.innerHTML = ''
+    return
+  }
   // Obtenim la informació de la pelicula
   const movieInfo = await swapi.getMovieInfo(movieId);
   // Injectem
-  title.innerHTML = movieInfo.name;
+  title.innerHTML = movieInfo.name
+  info.innerHTML = `Episode ${movieInfo.episodeID} - ${movieInfo.release}`
+  director.innerHTML = `Director: ${movieInfo.director}`
 }
 
-async function initMovieSelect(selector) {}
+async function initMovieSelect(selector) {
 
-function deleteAllCharacterTokens() {}
+  const pelicules = await swapi.listMoviesSorted();
+
+  const select = document.querySelector(selector);
+
+  const option = document.createElement('option');
+  option.value = '';
+  option.textContent = 'Selecciona una pelicula';
+  select.appendChild(option);
+
+  pelicules.forEach(pelicula => {
+    const option = document.createElement('option');
+    option.value = _filmIdToEpisodeId(pelicula.episodeID)
+    option.textContent = pelicula.name;
+    select.appendChild(option);
+  });
+
+}
+
+function deleteAllCharacterTokens() { }
 
 // EVENT HANDLERS //
 
-function addChangeEventToSelectHomeworld() {}
+function addChangeEventToSelectHomeworld() {
 
-async function _createCharacterTokens() {}
+  document.querySelector('.list__characters').innerHTML = '';
 
-function _addDivChild(parent, className, html) {}
+  const planeta = document.querySelector('#select-homeworld');
 
-function setMovieSelectCallbacks() {}
+  planeta.addEventListener('change', _handleOnSelectPlanetChanged);
+}
 
-async function _handleOnSelectMovieChanged(event) {}
+async function _handleOnSelectPlanetChanged(event) {
 
-function _filmIdToEpisodeId(episodeID) {}
+  const idPelicula = document.querySelector('#select-movie').value;
+
+  let caracters = (await swapi.getMovieCharactersAndHomeworlds(idPelicula)).characters;
+
+
+  caracters.forEach(caracter => {
+    if (caracter.homeworld == event.target.value) {
+      _createCharacterTokens(caracter);
+    }
+  })
+
+}
+
+async function _createCharacterTokens(caracter) {
+  // Crear el <li> principal
+  const ficha = document.createElement('li');
+  ficha.classList.add('list__item', 'item', 'character');
+
+  // Crear i afegir la imatge
+  const img = document.createElement('img');
+  const parts = caracter.url.split('/');
+  const planetId = parts.pop(); // Extreu l'últim element (l'identificador de la planeta)
+  img.src = "/../public/assets/people/" + planetId +".jpg";
+  img.classList.add('character__image');
+  ficha.appendChild(img);
+
+  // Crear i afegir el títol (nom del personatge)
+  const h2 = document.createElement('h2');
+  h2.textContent = caracter.name;
+  h2.classList.add('character__name');
+  ficha.appendChild(h2);
+
+  // Crear i afegir la informació de data de naixement
+  const birthDiv = document.createElement('div');
+  birthDiv.classList.add('character__birth');
+  const birthStrong = document.createElement('strong');
+  birthStrong.innerHTML = `<strong>Birth Year:</strong> ${caracter.birth_year}`;
+  birthDiv.appendChild(birthStrong);
+  ficha.appendChild(birthDiv);
+
+  // Crear i afegir la informació de color d'ulls
+  const eyeDiv = document.createElement('div');
+  eyeDiv.classList.add('character__eye');
+  const eyeStrong = document.createElement('strong');
+  eyeStrong.innerHTML = `<strong>Eye color:</strong> ${caracter.eye_color}`;
+  eyeDiv.appendChild(eyeStrong);
+  ficha.appendChild(eyeDiv);
+
+  // Crear i afegir la informació de gènere
+  const genderDiv = document.createElement('div');
+  genderDiv.classList.add('character__gender');
+  const genderStrong = document.createElement('strong');
+  genderStrong.innerHTML = `<strong>Gender:</strong> ${caracter.gender}`;
+  genderDiv.appendChild(genderStrong);
+  ficha.appendChild(genderDiv);
+
+  // Crear i afegir la informació del planeta d'origen
+  const homeWorldDiv = document.createElement('div');
+  homeWorldDiv.classList.add('character__home');
+  const homeWorldStrong = document.createElement('strong');
+  homeWorldStrong.innerHTML = `<strong>Home World:</strong> ${caracter.homeworld}`;
+  homeWorldDiv.appendChild(homeWorldStrong);
+  ficha.appendChild(homeWorldDiv);
+
+  // Afegir la fitxa del personatge a la llista de personatges
+  document.querySelector(".list__characters").appendChild(ficha);
+}
+
+
+function _addDivChild(parent, className, html) {
+
+}
+
+function setMovieSelectCallbacks() {
+  const select = document.querySelector('#select-movie');
+  select.addEventListener('change', _handleOnSelectMovieChanged);
+}
+
+
+
+async function _handleOnSelectMovieChanged(event) {
+  setMovieHeading(event.target.value, '.movie__title', '.movie__info', '.movie__director');
+  const selector = document.querySelector('#select-homeworld');
+  selector.innerHTML = '';
+
+  const option = document.createElement('option');
+  option.value = '';
+  option.textContent = 'Selecciona un homeworld';
+  selector.appendChild(option);
+
+  const caracters = await swapi.getMovieCharactersAndHomeworlds(event.target.value);
+
+  const planetas = caracters.characters.map((caracter) => {
+    return caracter.homeworld;
+  })
+
+  const planetasNoDuplicats = new Set(planetas);
+
+  let result = [...planetasNoDuplicats].sort();
+
+  result.forEach(planeta => {
+    const option = document.createElement('option');
+    option.value = planeta;
+    option.textContent = planeta;
+    selector.appendChild(option);
+  });
+
+  document.querySelector('.list__characters').innerHTML = '';
+}
+
+function _filmIdToEpisodeId(episodeID) {
+  const mapping = episodeToMovieIDs.find(item => item.e === episodeID)
+  if (mapping) {
+    return mapping.m
+  } else {
+    return null
+  }
+}
 
 // "https://swapi.dev/api/films/1/" --> Episode_id = 4 (A New Hope)
 // "https://swapi.dev/api/films/2/" --> Episode_id = 5 (The Empire Strikes Back)
@@ -45,18 +191,9 @@ let episodeToMovieIDs = [
   { m: 6, e: 3 },
 ];
 
-function _setMovieHeading(movieId, titleSelector, infoSelector, directorSelector) {
-  const title = document.querySelector(titleSelector);
-  const info = document.querySelector(infoSelector);
-  const director = document.querySelector(directorSelector);
-  console.log(directorSelector);
-  const peliculaInfo = swapi.getMovieInfo(movieId);
-  title.innerHTML = peliculaInfo.title;
-  info.innerHTML = "Episode " + peliculaInfo.episodeID;
-  director.innerHTML = peliculaInfo.director; 
-}
+function _setMovieHeading({ name, episodeID, release, director }) { }
 
-function _populateHomeWorldSelector(homeworlds) {}
+function _populateHomeWorldSelector(homeworlds) { }
 
 /**
  * Funció auxiliar que podem reutilitzar: eliminar duplicats i ordenar alfabèticament un array.

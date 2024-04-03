@@ -27,11 +27,9 @@ async function listMovies() {
       throw new Error('API request failed');
     }
     const data = await res.json();
+    //console.log(data)
     // Comprovem que hi hagi resposta i que sigui un array
-    if (!data.results || !Array.isArray(data.results)) {
-      throw new Error('API did not return an array');
-    }
-    const movies = data.results.map((movie) => ({
+    const movies = data.map((movie) => ({
       name: movie.title,
       director: movie.director,
       release: movie.release_date,
@@ -49,12 +47,15 @@ async function listMoviesSorted() {
   return movies.sort(_compareByName);
 }
 
+//listMoviesSorted().then((res)=>console.log(res))
+
 async function listEvenMoviesSorted() {
   const movies = await listMovies();
   return movies
     .filter((movie) => movie.episodeID % 2 === 0)
     .sort(_compareByEpisodeId);
 }
+
 
 function getMovieInfo(id) {
   return fetch(`https://swapi.info/api/films/${id}/`)
